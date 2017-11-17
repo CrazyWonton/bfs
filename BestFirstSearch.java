@@ -40,7 +40,7 @@ public class BestFirstSearch{
 			return profit;
 		}
 		public String toString(){
-			return "[" + weight + ", " + profit + ", " + level + ", " + bound + "]";
+			return "[" + weight + ", " + profit + ", " + ratio + ", " + level + ", " + bound + "]";
 		}
 	}
 
@@ -69,6 +69,7 @@ public class BestFirstSearch{
 			n = Integer.parseInt(line.substring(0,commaIndex).trim());
 			C = Integer.parseInt(line.substring(commaIndex+1).trim());
 			int i;
+			list.add(new Node(0,0,0,0));
 			for(i=0;i<n;i++){
 				line = bufferedReader.readLine();
 				commaIndex = line.indexOf(',');
@@ -86,28 +87,28 @@ public class BestFirstSearch{
 		}
 	}
 	//I TOTALLY FUGGED UP ON THIS SHITTTTTOASPODNASJDPJABPSJDB
-	static int bound(Node n){
-		int weight = 0;
-		int bound = n.getProfit();
-		for(int i = n.level; i < size ;i++){   // Items 1 to i – 1 have been considered.
-			x.set(i,0);  // initialize variables to 0
-		}
-		int i = n.level;
-		int lemon = 0;
-		while ((weight < C) && (i < size)){     //not “full” and more items
-			lemon = weight + list.get(i).getWeight();
-			if (lemon <= C){                  //room for next item
-				x.set(i, 1);                       //item i is added to knapsack
-				weight = weight + list.get(i).getWeight();
-				bound = bound + list.get(i).getProfit();
+	static int bound(Node bnode){
+		int weight = bnode.weight;
+		int n = size;
+		int i = bnode.level;
+		int bound = bnode.profit;
+
+		for(int j = bnode.level; j<n; j++)
+			x.set(j,0);
+		while((weight < C) && (i<=n)){
+			if((weight+list.get(i).getWeight())<=C){
+				x.set(i,1);
+				weight += list.get(i).getWeight();
+				bound += list.get(i).getProfit();
 			}
 			else{
-				x.set(i,((C - weight)/list.get(i).getWeight()));  //fraction of item i added to knapsack
+				x.set(i,((C-weight)/list.get(i).getWeight()));
 				weight = C;
-				bound = bound + list.get(i).getProfit()*x.get(i);
+				bound += (list.get(i).getProfit()*x.get(i));
 			}
-			i = i + 1;                             // next item
+			i++;
 		}
+		//System.out.println(bnode + " = " + bound);
 		return bound;
 	}
 
@@ -116,25 +117,36 @@ public class BestFirstSearch{
 		Node v = new Node(0,0,0,0);
 		int maxprofit=0;
 		v.bound=bound(v);
+
 		pQueue.add(v);
-		while (pQueue.size()>0 && v.level<(size-1)){
+		while (pQueue.size()>0){
 			v = pQueue.peek();
 			System.out.println(maxprofit + " <-> " + v);
 			pQueue.remove(v); //with best bound
 			if (v.bound>maxprofit) {//expand v
 				u.level= v.level+1;  	//u child of v
-				//”yes” child
+				//yes child
 				u.weight=v.weight+list.get(u.level).getWeight();
 				u.profit=v.profit+list.get(u.level).getProfit();
+				u.ratio = u.profit/u.weight;
+
 				if ((u.weight<=C) && (u.profit>maxprofit))
 					maxprofit=u.profit;
-				if (bound(u)>maxprofit)
+				u.bound = bound(u);
+				if (u.bound>maxprofit)
 					pQueue.add(u);
+				System.out.println("Yes Child = " + u);
+
 				u.weight= v.weight; //not included
 				u.profit= v.profit;
+				if(u.weight!=0)
+					u.ratio = u.profit/u.weight;
+				else
+					u.ratio = 0;
 				u.bound=bound(u);
 				if (u.bound>maxprofit)
 					pQueue.add(u);
+				System.out.println(" No Child = " + u);
 			}	//node not expanded
 		} //queue is empty
 	}
@@ -146,9 +158,10 @@ public class BestFirstSearch{
 		list = new ArrayList<Node>();
 		x = new ArrayList<Integer>();
 		readInStuff(args[0]);
+		System.out.println("[weight,profit,ratio,level,bound]\ncap =" + C);
 		for(int i=0;i<size;i++){
 			x.add(0);
-			System.out.println("-"+list.get(i));		
+			System.out.println("-"+list.get(i));
 		}
 		bfs();
 		//while (pQueue.size() != 0)
