@@ -27,7 +27,7 @@ public class BestFirstSearch{
 			if(w != 0)
 				ratio = c/w;
 			else
-				ratio = -1;
+				ratio = 0;
 			level = l;
 			bound = b;
 		}
@@ -48,9 +48,9 @@ public class BestFirstSearch{
 		@Override
 			public int compare(Node x, Node y){
 				if (x.ratio > y.ratio)
-					return -1;
-				if (x.ratio < y.ratio)
 					return 1;
+				if (x.ratio < y.ratio)
+					return -1;
 				return 0;
 			}
 	}
@@ -78,7 +78,7 @@ public class BestFirstSearch{
 				Node temp = new Node(weight, profit,0,0);
 				list.add(temp);
 			}
-			size = i;
+			size = i+1;
 			bufferedReader.close();
 		} catch (FileNotFoundException ex) {
 			System.out.println("Unable to open file '" + filename + "'");
@@ -93,7 +93,7 @@ public class BestFirstSearch{
 		int i = bnode.level;
 		int bound = bnode.profit;
 
-		for(int j = bnode.level; j<n; j++)
+		for(int j = i; j<n; j++)
 			x.set(j,0);
 		while((weight < C) && (i<=n)){
 			if((weight+list.get(i).getWeight())<=C){
@@ -120,29 +120,19 @@ public class BestFirstSearch{
 
 		pQueue.add(v);
 		while (pQueue.size()>0){
+			System.out.println("Queue Size = " + pQueue.size());
 			v = pQueue.peek();
 			System.out.println(maxprofit + " <-> " + v);
 			pQueue.remove(v); //with best bound
 			if (v.bound>maxprofit) {//expand v
-				u.level= v.level+1;  	//u child of v
-				//yes child
-				u.weight=v.weight+list.get(u.level).getWeight();
-				u.profit=v.profit+list.get(u.level).getProfit();
-				u.ratio = u.profit/u.weight;
-
+				u = new Node(v.weight+list.get(u.level).getWeight(),v.profit+list.get(u.level).getProfit(), v.level+1, 0);
 				if ((u.weight<=C) && (u.profit>maxprofit))
 					maxprofit=u.profit;
 				u.bound = bound(u);
 				if (u.bound>maxprofit)
 					pQueue.add(u);
 				System.out.println("Yes Child = " + u);
-
-				u.weight= v.weight; //not included
-				u.profit= v.profit;
-				if(u.weight!=0)
-					u.ratio = u.profit/u.weight;
-				else
-					u.ratio = 0;
+				u = new Node(v.weight,v.profit,v.level+1,0);
 				u.bound=bound(u);
 				if (u.bound>maxprofit)
 					pQueue.add(u);
