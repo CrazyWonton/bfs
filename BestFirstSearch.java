@@ -14,7 +14,7 @@ public class BestFirstSearch{
 	static ArrayList<Node> knapsack;
 	static ArrayList<Integer> x;
 
-	public static class {
+	public static class Node{
 		int weight;
 		int profit;
 		int ratio;
@@ -24,7 +24,10 @@ public class BestFirstSearch{
 		public Node(int w, int c, int l, int b){
 			weight = w;
 			profit = c;
-			ratio = c/w;
+			if(w != 0)
+				ratio = c/w;
+			else
+				ratio = -1;
 			level = l;
 			bound = b;
 		}
@@ -34,22 +37,22 @@ public class BestFirstSearch{
 		}
 
 		public int getProfit(){
-				return profit;
+			return profit;
 		}
 		public String toString(){
-			return "[" + weight + ", " + profit + "] = " + ratio;
+			return "[" + weight + ", " + profit + ", " + level + ", " + bound + "]";
 		}
 	}
 
 	public static class NodeComparator implements Comparator<Node>{
 		@Override
-		public int compare(Node x, Node y){
-			if (x.ratio > y.ratio)
-			return -1;
-			if (x.ratio < y.ratio)
-			return 1;
-			return 0;
-		}
+			public int compare(Node x, Node y){
+				if (x.ratio > y.ratio)
+					return -1;
+				if (x.ratio < y.ratio)
+					return 1;
+				return 0;
+			}
 	}
 
 
@@ -71,7 +74,7 @@ public class BestFirstSearch{
 				commaIndex = line.indexOf(',');
 				weight = Integer.parseInt(line.substring(0,commaIndex).trim());
 				profit = Integer.parseInt(line.substring(commaIndex+1).trim());
-				Node temp = new Node(weight, profit);
+				Node temp = new Node(weight, profit,0,0);
 				list.add(temp);
 			}
 			size = i;
@@ -82,39 +85,49 @@ public class BestFirstSearch{
 			System.out.println("Error reading file '" + filename + "'");
 		}
 	}
-//I TOTALLY FUGGED UP ON THIS SHITTTTTOASPODNASJDPJABPSJDB
-	int bound(Node n){
+	//I TOTALLY FUGGED UP ON THIS SHITTTTTOASPODNASJDPJABPSJDB
+	static int bound(Node n){
+		int weight = 0;
 		int bound = n.getProfit();
-		for(int j = n.level; j<n ;j++)   // Items 1 to i – 1 have been considered.
-		    x.get(i) = 0;  // initialize variables to 0
-		while (weight < C) && (i <= n)     //not “full” and more items
-		    if (weight + list.get(i) <= C)                  //room for next item
-		         x[i] = 1;                       //item i is added to knapsack
-		         weight = weight + w[i];
-		         bound = bound + p[i];
-		   else
-		        x[i] = (C – weight)/w[i];  //fraction of item i added to knapsack
-		        weight = C;
-		        bound = bound + p[i]*x[i];
-		   i = i + 1;                             // next item
+		for(int i = n.level; i < size ;i++){   // Items 1 to i – 1 have been considered.
+			x.set(i,0);  // initialize variables to 0
+		}
+		int i = n.level;
+		int lemon = 0;
+		while ((weight < C) && (i < size)){     //not “full” and more items
+			lemon = weight + list.get(i).getWeight();
+			if (lemon <= C){                  //room for next item
+				x.set(i, 1);                       //item i is added to knapsack
+				weight = weight + list.get(i).getWeight();
+				bound = bound + list.get(i).getProfit();
+			}
+			else{
+				x.set(i,((C - weight)/list.get(i).getWeight()));  //fraction of item i added to knapsack
+				weight = C;
+				bound = bound + list.get(i).getProfit()*x.get(i);
+			}
+			i = i + 1;                             // next item
+		}
 		return bound;
 	}
 
-	void bfs(){
+	static void bfs(){
 		Node u = new Node(0,0,0,0);
 		Node v = new Node(0,0,0,0);
-		maxprofit=0;
+		int maxprofit=0;
 		v.bound=bound(v);
 		pQueue.add(v);
-		while (!pQueue.size()==0){
-			v = pQueue.remove(v); //with best bound
+		while (pQueue.size()>0 && v.level<(size-1)){
+			v = pQueue.peek();
+			System.out.println(maxprofit + " <-> " + v);
+			pQueue.remove(v); //with best bound
 			if (v.bound>maxprofit) {//expand v
 				u.level= v.level+1;  	//u child of v
-															//”yes” child
+				//”yes” child
 				u.weight=v.weight+list.get(u.level).getWeight();
 				u.profit=v.profit+list.get(u.level).getProfit();
 				if ((u.weight<=C) && (u.profit>maxprofit))
-					maxprofit=profit;
+					maxprofit=u.profit;
 				if (bound(u)>maxprofit)
 					pQueue.add(u);
 				u.weight= v.weight; //not included
@@ -133,10 +146,12 @@ public class BestFirstSearch{
 		list = new ArrayList<Node>();
 		x = new ArrayList<Integer>();
 		readInStuff(args[0]);
-		for(int i=0;i<size;i++)
+		for(int i=0;i<size;i++){
 			x.add(0);
+			System.out.println("-"+list.get(i));		
+		}
 		bfs();
-		while (pQueue.size() != 0)
-		System.out.println(pQueue.remove());
+		//while (pQueue.size() != 0)
+		//	System.out.println(pQueue.remove());
 	}
 }
