@@ -48,9 +48,9 @@ public class BestFirstSearch{
 		@Override
 			public int compare(Node x, Node y){
 				if (x.ratio > y.ratio)
-					return 1;
-				if (x.ratio < y.ratio)
 					return -1;
+				if (x.ratio < y.ratio)
+					return 1;
 				return 0;
 			}
 	}
@@ -132,6 +132,7 @@ public class BestFirstSearch{
 				if (u.bound>maxprofit)
 					pQueue.add(u);
 				System.out.println("Yes Child = " + u);
+
 				u = new Node(v.weight,v.profit,v.level+1,0);
 				u.bound=bound(u);
 				if (u.bound>maxprofit)
